@@ -218,3 +218,18 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local datasets
+data/*
+!data/raw/
+data/raw/*
+!data/raw/.gitkeep
+
+# Local environment
+.env
+.venv/
+
+# dbt generated files
+target/
+dbt_packages/
+logs/
