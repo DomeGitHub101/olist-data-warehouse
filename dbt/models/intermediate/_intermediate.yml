@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: int_order_items_aggregated
+    description: Item counts and values rolled up to one row per order.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+  - name: int_order_payments_aggregated
+    description: Payments rolled up to one row per order.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+  - name: int_order_reviews_latest
+    description: The most recent review for each order.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+
+unit_tests:
+  - name: test_payments_aggregated_picks_largest_method
+    description: Split payments sum up and the largest one sets the primary type.
+    model: int_order_payments_aggregated
+    given:
+      - input: ref('stg_order_payments')
+        rows:
+          - {order_id: a, payment_sequential: 1, payment_type: voucher, payment_installments: 1, payment_value: "20.00"}
+          - {order_id: a, payment_sequential: 2, payment_type: credit_card, payment_installments: 3, payment_value: "80.00"}
+          - {order_id: b, payment_sequential: 1, payment_type: boleto, payment_installments: 1, payment_value: "50.00"}
+    expect:
+      rows:
+        - {order_id: a, payment_count: 2, payment_value: "100.00", max_installments: 3, primary_payment_type: credit_card, used_voucher: true}
+        - {order_id: b, payment_count: 1, payment_value: "50.00", max_installments: 1, primary_payment_type: boleto, used_voucher: false}
