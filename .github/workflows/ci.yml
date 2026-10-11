@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: olist
+          POSTGRES_PASSWORD: olist
+          POSTGRES_DB: olist_warehouse
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U olist -d olist_warehouse"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Used by the pytest integration test and by the dbt profile.
+    env:
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: olist
+      POSTGRES_PASSWORD: olist
+      POSTGRES_DB: olist_warehouse
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run pytest
+        run: pytest -v
+
+      # The Olist CSVs are not in the repo, so CI only checks that the
+      # dbt project compiles; models and data tests run locally.
+      - name: Parse dbt project
+        run: python scripts/run_dbt.py parse

@@ -82,6 +82,10 @@ pytest
 python scripts/run_dbt.py build
 ```
 
+GitHub Actions (`.github/workflows/ci.yml`) runs pytest against a PostgreSQL service and
+parses the dbt project on every push to `main` and on pull requests. The Olist CSVs are not
+in the repo, so dbt models and data tests run only locally.
+
 ## Known data quirks
 
 - One review can cover several orders, and some orders have several reviews. `int_order_reviews_latest` keeps the latest review per order.
