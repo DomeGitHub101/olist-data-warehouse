@@ -54,8 +54,14 @@ python scripts/run_dbt.py build    # build all models and run all tests
 docker compose --profile airflow up -d --build
 ```
 
-Open http://localhost:8080. The `admin` password is printed in the container log
-(`docker compose logs airflow | grep password`). The `olist_pipeline` DAG runs
+Open http://localhost:8080, or the port set as `AIRFLOW_PORT` in `.env` if 8080 is
+already taken. Log in as `admin` with the generated password:
+
+```bash
+docker compose exec airflow cat /opt/airflow/standalone_admin_password.txt
+```
+
+New DAGs start paused, so unpause `olist_pipeline` before triggering it. The `olist_pipeline` DAG runs
 `load_raw → dbt_build_staging → dbt_build_marts`.
 
 To run the whole DAG once without the scheduler:
