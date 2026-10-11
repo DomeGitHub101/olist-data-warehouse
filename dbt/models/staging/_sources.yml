@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Olist CSV files loaded as-is (all TEXT) by scripts/load_raw.py.
+    schema: raw
+    tables:
+      - name: orders
+      - name: order_items
+      - name: customers
+      - name: products
+      - name: order_payments
+      - name: order_reviews
+      - name: sellers
+      - name: geolocation
+      - name: category_translation

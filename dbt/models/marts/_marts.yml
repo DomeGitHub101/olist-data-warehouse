@@ -1,0 +1,101 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Calendar dimension, one row per day.
+    columns:
+      - name: date_day
+        data_tests: [unique, not_null]
+
+  - name: dim_customers
+    description: One row per real customer (customer_unique_id).
+    columns:
+      - name: customer_unique_id
+        data_tests: [unique, not_null]
+      - name: order_count
+        data_tests: [not_null]
+      - name: lifetime_value
+        data_tests: [not_null, non_negative]
+      - name: customer_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [one-time, repeat]
+
+  - name: dim_products
+    description: One row per product with English category names.
+    columns:
+      - name: product_id
+        data_tests: [unique, not_null]
+      - name: category_name_english
+        data_tests: [not_null]
+
+  - name: dim_sellers
+    description: One row per seller with location.
+    columns:
+      - name: seller_id
+        data_tests: [unique, not_null]
+
+  - name: fct_orders
+    description: One row per order with values, payment, review and delivery metrics.
+    columns:
+      - name: order_id
+        data_tests: [unique, not_null]
+      - name: customer_unique_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_unique_id
+      - name: purchase_date
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_day
+      - name: order_value
+        data_tests: [not_null, non_negative]
+      - name: review_score
+        description: Latest review score; null when the order was never reviewed.
+      - name: is_late_delivery
+        description: True when delivered after the estimated date; null when not delivered.
+
+  - name: fct_order_items
+    description: One row per order item (the sales grain).
+    columns:
+      - name: order_item_key
+        data_tests: [unique, not_null]
+      - name: product_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_products')
+                field: product_id
+      - name: seller_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_sellers')
+                field: seller_id
+      - name: customer_unique_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customers')
+                field: customer_unique_id
+      - name: purchase_date
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_day
+      - name: total_value
+        data_tests: [not_null, non_negative]
+
+  - name: mart_monthly_sales
+    description: Monthly KPIs for reporting.
+    columns:
+      - name: month
+        data_tests: [unique, not_null]
